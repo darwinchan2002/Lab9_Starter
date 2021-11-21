@@ -5,6 +5,14 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "6712954b15b3443c88afa5fa7acbe893"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
+  <script src='main.js' type='module' defer></script>
   <title>Lab 9</title>
 
   <style>
@@ -88,6 +96,15 @@
   </main>
 
   <script>
+    /** Division by 0 error */
+    class DivisionByZeroError extends Error {
+      constructor(message, cause) {
+        super(message);
+        this.cause = cause;
+        this.name = 'DivisionByZero';
+      }
+    }
+    
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,7 +112,26 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      let result;
+      try {
+        if (operator == '/' && secondNum == '0') {
+          throw new DivisionByZeroError('Divisor is zero')
+        }
+        result = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (err) {
+        // TrackJS.track('Testing TrackJS!');
+        TrackJS.track(err);
+        if (err instanceof DivisionByZeroError) {
+          alert('No division by zero!');
+        } else {
+          alert('Error: ' + err);
+        }
+        throw err;
+        result = 'error'
+      } finally {
+        output.innerHTML = result;
+      }
+
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
